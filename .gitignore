@@ -17,3 +17,8 @@
 *.sublime-project
 *.sublime-workspace
 *~
+
+# gas town runtime
+.beads/
+.runtime/
+.kiro/
