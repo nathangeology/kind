@@ -78,12 +78,12 @@ spec:
       type: DirectoryOrCreate
 STATICPOD
 
+  # Only mount the binary — NOT the static pod manifest.
+  # kubeadm fails if extra manifests exist in /etc/kubernetes/manifests/ during init.
+  # After cluster creation, use: docker cp ${OUT_DIR}/custom-rs-controller.yaml <node>:/etc/kubernetes/manifests/
   EXTRA_MOUNTS=$(cat <<EOF
   - hostPath: ${CUSTOM_BINARY}
     containerPath: /opt/custom-rs-controller/controller-manager
-    readOnly: true
-  - hostPath: ${OUT_DIR}/custom-rs-controller.yaml
-    containerPath: /etc/kubernetes/manifests/custom-rs-controller.yaml
     readOnly: true
 EOF
 )
@@ -108,10 +108,18 @@ ${EXTRA_MOUNTS}}
 - role: worker
 EOF
 
+CLUSTER_NAME="${CLUSTER_NAME:-rs-test}"
+
 echo "Generated: ${OUT_DIR}/kind-custom-rs.yaml"
 echo ""
-echo "Create cluster: kind create cluster --config ${OUT_DIR}/kind-custom-rs.yaml"
-if [[ -z "${CUSTOM_BINARY}" ]]; then
+echo "Create cluster and deploy custom controller:"
+echo "  kind create cluster --name ${CLUSTER_NAME} --config ${OUT_DIR}/kind-custom-rs.yaml"
+if [[ -n "${CUSTOM_BINARY}" ]]; then
+  echo "  docker cp ${OUT_DIR}/custom-rs-controller.yaml ${CLUSTER_NAME}-control-plane:/etc/kubernetes/manifests/"
+  echo ""
+  echo "The static pod manifest must be copied AFTER cluster creation."
+  echo "kubeadm fails if extra manifests exist in /etc/kubernetes/manifests/ during init."
+else
   echo ""
   echo "Note: No custom binary provided. The built-in RS controller is disabled."
   echo "You must deploy your own RS controller after cluster creation."
