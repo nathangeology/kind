@@ -38,17 +38,20 @@ Replace the built-in replicaset controller with a custom build:
 # and runs a custom one as a static pod
 ./hack/custom-components/gen-custom-rs-controller.sh /path/to/custom-kube-controller-manager
 
-# Create cluster
-kind create cluster --config hack/custom-components/out/kind-custom-rs.yaml
+# Create cluster (binary mounted, static pod NOT yet deployed)
+kind create cluster --name rs-test --config hack/custom-components/out/kind-custom-rs.yaml
+
+# Deploy static pod AFTER cluster creation (kubeadm fails if present during init)
+docker cp hack/custom-components/out/custom-rs-controller.yaml rs-test-control-plane:/etc/kubernetes/manifests/
 ```
 
 ### How it works
 
 1. Disables the built-in replicaset controller via `--controllers=-replicaset`
    on kube-controller-manager
-2. Mounts the custom binary into the node
-3. Deploys a static pod manifest that runs the custom controller with
-   appropriate RBAC (uses the existing kube-controller-manager service account)
+2. Mounts the custom binary into the node via KIND extraMounts
+3. After cluster creation, the static pod manifest is copied into the node
+   (kubeadm chokes on extra manifests in `/etc/kubernetes/manifests/` during init)
 
 ### Alternative: Custom node image
 
