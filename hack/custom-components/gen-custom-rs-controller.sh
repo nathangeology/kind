@@ -51,8 +51,14 @@ spec:
     - --authorization-kubeconfig=/etc/kubernetes/controller-manager.conf
     - --leader-elect=true
     - --leader-elect-resource-name=custom-rs-controller
+    - --secure-port=10258
+    - --use-service-account-credentials=true
+    - --service-account-private-key-file=/etc/kubernetes/pki/sa.key
+    - --root-ca-file=/etc/kubernetes/pki/ca.crt
     - --v=2
     image: registry.k8s.io/pause:3.9
+    securityContext:
+      runAsUser: 0
     volumeMounts:
     - name: custom-binary
       mountPath: /custom-controller-manager
@@ -105,7 +111,6 @@ nodes:
         controllers: "*,-replicaset"
 ${EXTRA_MOUNTS:+  extraMounts:
 ${EXTRA_MOUNTS}}
-- role: worker
 EOF
 
 CLUSTER_NAME="${CLUSTER_NAME:-rs-test}"
