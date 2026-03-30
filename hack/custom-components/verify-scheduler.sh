@@ -31,13 +31,14 @@ fi
 # Check 2: Scheduler process has --config flag
 echo ""
 echo "--- Check 2: Scheduler process flags ---"
-SCHEDULER_ARGS=$(docker exec "${NODE_NAME}" ps aux 2>/dev/null | grep kube-scheduler | grep -v grep || true)
-if echo "${SCHEDULER_ARGS}" | grep -q -- "--config"; then
+SCHED_CMD=$(kubectl --context "kind-${CLUSTER_NAME}" -n kube-system get pod -l component=kube-scheduler \
+  -o jsonpath='{.items[0].spec.containers[0].command}' 2>/dev/null || true)
+if echo "${SCHED_CMD}" | grep -q -- "--config"; then
   echo "PASS: kube-scheduler running with --config flag"
 else
   echo "FAIL: kube-scheduler not running with --config flag"
-  echo "Scheduler process:"
-  echo "${SCHEDULER_ARGS}"
+  echo "Scheduler command:"
+  echo "${SCHED_CMD}"
   exit 1
 fi
 
