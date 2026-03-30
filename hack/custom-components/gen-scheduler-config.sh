@@ -24,31 +24,31 @@ SCHEDULER_API_VERSION="${SCHEDULER_API_VERSION:-v1}"
 case "${SCORING_PLUGIN}" in
   MostAllocated)
     SCORE_ARGS=$(cat <<'EOF'
-          scoringStrategy:
-            type: MostAllocated
-            resources:
-            - name: cpu
-              weight: 1
-            - name: memory
-              weight: 1
+      scoringStrategy:
+        type: MostAllocated
+        resources:
+        - name: cpu
+          weight: 1
+        - name: memory
+          weight: 1
 EOF
 )
     ;;
   RequestedToCapacityRatio)
     SCORE_ARGS=$(cat <<'EOF'
-          scoringStrategy:
-            type: RequestedToCapacityRatio
-            requestedToCapacityRatio:
-              shape:
-              - utilization: 0
-                score: 0
-              - utilization: 100
-                score: 10
-            resources:
-            - name: cpu
-              weight: 1
-            - name: memory
-              weight: 1
+      scoringStrategy:
+        type: RequestedToCapacityRatio
+        requestedToCapacityRatio:
+          shape:
+          - utilization: 0
+            score: 0
+          - utilization: 100
+            score: 10
+        resources:
+        - name: cpu
+          weight: 1
+        - name: memory
+          weight: 1
 EOF
 )
     ;;
@@ -63,6 +63,10 @@ esac
 cat > "${OUT_DIR}/scheduler-config.yaml" <<EOF
 apiVersion: kubescheduler.config.k8s.io/${SCHEDULER_API_VERSION}
 kind: KubeSchedulerConfiguration
+clientConnection:
+  kubeconfig: /etc/kubernetes/scheduler.conf
+leaderElection:
+  leaderElect: true
 profiles:
 - schedulerName: default-scheduler
   plugins:

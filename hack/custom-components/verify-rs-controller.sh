@@ -19,13 +19,14 @@ echo "=== Verifying custom RS controller for cluster '${CLUSTER_NAME}' ==="
 # Check 1: Built-in RS controller disabled
 echo ""
 echo "--- Check 1: Built-in RS controller disabled ---"
-KCM_ARGS=$(docker exec "${NODE_NAME}" ps aux 2>/dev/null | grep kube-controller-manager | grep -v grep || true)
-if echo "${KCM_ARGS}" | grep -q -- "-replicaset"; then
+KCM_CMD=$(kubectl --context "${CONTEXT}" -n kube-system get pod -l component=kube-controller-manager \
+  -o jsonpath='{.items[0].spec.containers[0].command}' 2>/dev/null || true)
+if echo "${KCM_CMD}" | grep -q -- "-replicaset"; then
   echo "PASS: kube-controller-manager has -replicaset in controllers flag"
 else
   echo "FAIL: kube-controller-manager does not have -replicaset disabled"
-  echo "KCM process:"
-  echo "${KCM_ARGS}"
+  echo "KCM command:"
+  echo "${KCM_CMD}"
   exit 1
 fi
 
