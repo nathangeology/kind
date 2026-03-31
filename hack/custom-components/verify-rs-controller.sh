@@ -49,6 +49,14 @@ TEST_NS="rs-verify-$$"
 kubectl --context "${CONTEXT}" create namespace "${TEST_NS}" 2>/dev/null || true
 
 echo "Creating test ReplicaSet..."
+# Wait for default service account to be created (needed for pod creation)
+echo "Waiting for default service account..."
+for i in $(seq 1 12); do
+  if kubectl --context "${CONTEXT}" -n "${TEST_NS}" get sa default &>/dev/null; then
+    break
+  fi
+  sleep 5
+done
 kubectl --context "${CONTEXT}" -n "${TEST_NS}" apply -f - <<'EOF'
 apiVersion: apps/v1
 kind: ReplicaSet
